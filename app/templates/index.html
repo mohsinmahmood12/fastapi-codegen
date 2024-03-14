@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Snippet Generator</title>
+    <style>
+        body, h1, h2, h3, form, input, button {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #2C003E;
+            color: #FFF;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            margin-bottom: 20px;
+        }
+        form {
+            margin-bottom: 40px;
+        }
+        label, input, button {
+            display: block;
+            width: 100%;
+            margin: 5px 0;
+        }
+        input, button {
+            height: 40px;
+            border: 1px solid #FFF;
+            background-color: #3E1F5C;
+            color: #FFF;
+            padding-left: 10px;
+        }
+        button {
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #4E2F6C;
+        }
+        pre {
+            background-color: #341A4B;
+            padding: 10px;
+            overflow: auto;
+        }
+        .snippet {
+            background-color: #341A4B;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .snippet button {
+            margin-left: 10px;
+            background-color: #852D91;
+        }
+        .snippet pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <h1>Code Snippet Generator</h1>
+    
+    <h2>Generate Code</h2>
+    <form id="codeForm">
+        <label for="description">Describe your coding problem:</label><br>
+        <input type="text" id="description" name="description" required><br>
+        <button type="submit">Generate Code</button>
+    </form>
+    <h3>Generated Code:</h3>
+    <pre id="codeResult"></pre>
+
+    <h2>Submit Feedback</h2>
+    <form id="feedbackForm">
+        <label for="feedback">Feedback on the generated code:</label><br>
+        <input type="text" id="feedback" name="feedback" required><br>
+        <button type="submit">Submit Feedback</button>
+    </form>
+
+    <h2>Generated Snippets:</h2>
+    <div id="snippetsList"></div>
+
+    <script>
+        document.getElementById('codeForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const description = document.getElementById('description').value;
+            const response = await fetch('/generate-code/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({description: description})
+            });
+            const result = await response.json();
+            document.getElementById('codeResult').textContent = result.code;
+            fetchSnippets(); // Refresh the snippets list
+        };
+
+        document.getElementById('feedbackForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const feedback = document.getElementById('feedback').value;
+            await fetch('/submit-feedback/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({feedback: feedback})
+            });
+            document.getElementById('feedback').value = ''; 
+            alert('Feedback submitted successfully.');
+        };
+
+        async function fetchSnippets() {
+            const response = await fetch('/snippets/');
+            const snippets = await response.json();
+            const snippetsList = document.getElementById('snippetsList');
+            snippetsList.innerHTML = '';
+            snippets.forEach(snippet => {
+                const snippetDiv = document.createElement('div');
+                snippetDiv.classList.add('snippet');
+                snippetDiv.setAttribute('id', `snippet-${snippet.id}`);
+                snippetDiv.innerHTML = `
+                    <pre>${snippet.code}</pre>
+                    <button onclick="deleteSnippet('${snippet.id}')">Delete</button>
+                `;
+                snippetsList.appendChild(snippetDiv);
+            });
+        }
+
+        async function deleteSnippet(snippetId) {
+            const response = await fetch(`/snippets/${snippetId}`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                document.getElementById(`snippet-${snippetId}`).remove();
+            } else {
+                console.error('Failed to delete the snippet:', response.statusText);
+            }
+        }
+
+        window.onload = fetchSnippets;
+    </script>
+</body>
+</html>
