@@ -2,6 +2,8 @@
 
 This FastAPI application leverages OpenAI's GPT models to generate code snippets based on user descriptions and improves its outputs over time by incorporating user feedback, stored and managed through Redis. Designed for ease of use and scalability, it aims to streamline the development process by providing quick, relevant code suggestions that adapt to user preferences and feedback.
 
+![Frontend Screenshot](frontend.png)
+
 ## Features
 
 - **Dynamic Code Generation**: Generate tailored code snippets from user-provided descriptions.
